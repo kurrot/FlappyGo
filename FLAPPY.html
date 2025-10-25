@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Flappy Bird</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <script src="script.js"></script>
+</body>
+</html>
+body {
+  background-color: #f0f0f0;
+}
+
+#gameCanvas {
+  border: 1px solid #ccc;
+}
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Game variables
+let bird = { x: 100, y: 200, vy: 0 };
+let pipes = [];
+let score = 0;
+let gameOver = false;
+
+// Draw bird
+function drawBird() {
+  ctx.fillStyle = '#ff0';
+  ctx.fillRect(bird.x, bird.y, 20, 20);
+}
+
+// Draw pipes
+function drawPipes() {
+  for (let i = 0; i < pipes.length; i++) {
+    ctx.fillStyle = '#0f0';
+    ctx.fillRect(pipes[i].x, 0, 20, pipes[i].top);
+    ctx.fillRect(pipes[i].x, pipes[i].bottom, 20, canvas.height);
+  }
+}
+
+// Update game state
+function update() {
+  if (!gameOver) {
+    bird.y += bird.vy;
+    bird.vy += 0.5;
+
+    // Collision with ground
+    if (bird.y > canvas.height - 20) {
+      gameOver = true;
+    }
+
+    // Generate pipes
+    if (Math.random() < 0.05) {
+      pipes.push({
+        x: canvas.width,
+        top: Math.random() * (canvas.height - 150),
+        bottom: canvas.height - 150
+      });
+    }
+
+    // Move pipes
+    for (let i = 0; i < pipes.length; i++) {
+      pipes[i].x -= 2;
+      if (pipes[i].x < -20) {
+        pipes.splice(i, 1);
+        score++;
+      }
+    }
+
+    // Collision with pipes
+    for (let i = 0; i < pipes.length; i++) {
+      if (bird.x + 20 > pipes[i].x &&
+          bird.x < pipes[i].x + 20 &&
+          (bird.y < pipes[i].top || bird.y + 20 > pipes[i].bottom)) {
+        gameOver = true;
+      }
+    }
+  }
+}
+
+// Draw game
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBird();
+  drawPipes();
+  ctx.fillStyle = '#000';
+  ctx.font = '24px Arial';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(`Score: ${score}`, 10, 10);
+  if (gameOver) {
+    ctx.font = '48px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+  }
+}
+
+// Handle user input
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ') {
+    bird.vy = -6;
+  }
+});
+
+// Main game loop
+setInterval(() => {
+  update();
+  draw();
+}, 16);
